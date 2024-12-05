@@ -1,4 +1,4 @@
-,fullDate,day,dayOfWeek,month,bimonthly,quarter,fourMonths,year,decade
+dateID,fullDate,day,dayOfWeek,month,bimonthly,quarter,fourMonths,year,decade
 0,2022-09-19,19,Monday,9,5,3,3,2022,2020
 1,2022-09-18,18,Sunday,9,5,3,3,2022,2020
 2,2022-09-16,16,Friday,9,5,3,3,2022,2020

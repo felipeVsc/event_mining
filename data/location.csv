@@ -1,4 +1,4 @@
-,city,state_name,population,lat,lng,country
+locationID,city,state_name,population,lat,lng,country
 0,New York,New York,18713220,40.6943,-73.9249,United States
 1,Los Angeles,California,12750807,34.1139,-118.4068,United States
 2,Chicago,Illinois,8604203,41.8373,-87.6862,United States
