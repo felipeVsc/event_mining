@@ -1,0 +1,12 @@
+FIND_EVENT from event , date , content
+FIND_EVENT where date.fulldate = '2022-08-18' AND event.feeling = 1 AND event.dateID = date.dateID AND event.contentID = content.contentID;
+FIND_EVENT select content.title [ word ]
+
+COUNT_WORDS from FIND_EVENT
+COUNT_WORDS select REGEXP_SPLIT_TO_TABLE( word , ' ' ) [ word_tokenized ] , COUNT( * ) [ number ]
+COUNT_WORDS function REGEXP_SPLIT_TO_TABLE( word , '  ' )
+COUNT_WORDS group_by word_tokenized
+
+main  from COUNT_WORDS
+main  select word_tokenized , number
+main  visualize wordcloud

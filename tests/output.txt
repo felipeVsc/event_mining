@@ -1,0 +1,2 @@
+WITH clusters AS (SELECT DATA_ID, CLUSTER(DATA) FROM TABLE)
+SELECT cluster FROM clusters;
