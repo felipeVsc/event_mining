@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from wordcloud import WordCloud
-
+import pyarrow as pa
+import pyarrow.compute as pc
+import numpy as np
 
 class Visualization:
     """
@@ -28,10 +30,13 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
+            # for new_line in y:
+            import pyarrow
+            # if type(y) == ""
+            
+            ax.plot(x.to_pylist(), y.to_pylist(), **kwargs)
 
-            for new_line in y:
-                ax.plot(x, new_line, **kwargs)
-
+            # this cant be dynamic. it will be static
             if 'label' in kwargs:
                 fig.legend(kwargs['label'])
 
@@ -40,7 +45,7 @@ class Visualization:
         except Exception as e:
             raise e
 
-        return True
+        return [True]*len(x)
 
     def vbar(self, x, y, **kwargs):
         """ 
@@ -53,16 +58,15 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
-            for new_line in y:
-                ax.bar(x, new_line, **kwargs)
-
-            fig.savefig(self.path)
+            print(x[0])
+            ax.bar(x.to_pylist(), y.to_pylist(), **kwargs)
+            print("hi2")
             fig.savefig(self.path)
 
         except Exception as e:
             raise e
 
-        return True
+        return [True]*len(x)
 
     def hbar(self, y, x, **kwargs):
         """ 
@@ -76,16 +80,22 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
+            print("y:")
+            print(y)
 
-            for new_line in x:
-                ax.barh(y, new_line, **kwargs)
+            print()
+
+            print("x:")
+            print(x)
+         
+            ax.barh(y.to_pylist(), x.to_pylist(), **kwargs)
             fig.savefig(self.path)
 
         except Exception as e:
             print(e)
             return e
 
-        return True
+        return [True]*len(x)
 
     def scatter(self, x, y, **kwargs):
         """ 
@@ -96,13 +106,13 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
-            ax.scatter(x, y, **kwargs)
+            ax.scatter(x.to_pylist(), y.to_pylist(), **kwargs)
             fig.savefig(self.path)
 
         except Exception as e:
             raise e
 
-        return True
+        return [True]*len(x)
 
     def pie(self, x, labels, **kwargs):
         """ 
@@ -114,13 +124,13 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
-            ax.pie(x, labels=labels, **kwargs)
+            ax.pie(x.to_pylist(), labels=labels, **kwargs)
             fig.savefig(self.path)
 
         except Exception as e:
             raise e
 
-        return True
+        return labels
 
     def boxplot(self, x, labels, **kwargs):
         """ 
@@ -132,15 +142,15 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
-            ax.boxplot(x, labels=labels, **kwargs)
+            ax.boxplot(x.to_pylist(), labels=labels.to_pylist(), **kwargs)
             fig.savefig(self.path)
 
         except Exception as e:
             raise e
 
-        return True
+        return labels
 
-    def heatmap(self, data, **kwargs):
+    def heatmap(self, data1, data2, **kwargs):
         """ 
         Plots a heatmap.
 
@@ -149,15 +159,17 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
-            ax.imshow(data, **kwargs)
+            # TODO fix this
+            features = np.column_stack((data1.to_pylist(), data2.to_pylist()))
+            ax.imshow(features, **kwargs)
             fig.savefig(self.path)
 
         except Exception as e:
             raise e
 
-        return True
+        return [True]*len(data1)
 
-    def wordcloud(self, data: pd.DataFrame, columnName):
+    def wordcloud(self, data):
         """
         Plots a wordcloud using WordCloud lib.
 
@@ -165,27 +177,26 @@ class Visualization:
         columnName: the name of the column used
         """
 
-        data = data[columnName]
-        data = data.dropna(axis=0)
-
-        
-
         def clean_words(word):
             word = word.replace(".", "")
             word = word.replace(",", "")
             word = word.replace("'s", "")
             word = word.replace("'s", "")
+            word = word.replace("‘", "")
 
             return word.lower()
 
+        data = pc.drop_null(data)
+
         try:
-            words = data.apply(lambda row: row.split(" ")).explode(
-                columnName).apply(lambda row: clean_words(row))
-            
-            # This is needed by the WordCloud generator
-            words_to_singlestring = " ".join(words.tolist())
+            words = pc.list_flatten(pc.utf8_split_whitespace(data))
+
+            cleaned_words = [clean_words(word.as_py()) for word in words]
+
+            words_to_singlestring = " ".join(cleaned_words)
 
             wordcloud = WordCloud(background_color="white").generate(words_to_singlestring)
+            print(wordcloud.words_)
 
             fig, ax = plt.subplots()
             ax.imshow(wordcloud)
@@ -194,10 +205,10 @@ class Visualization:
         except Exception as e:
             raise e
 
-        return True
+        return data
 
-import pandas as pd
-df = pd.read_csv("./data/content.csv",index_col="contentID")
+# import pandas as pd
+# df = pd.read_csv("./data/content.csv",index_col="contentID")
 
-vis = Visualization()
-vis.wordcloud(df,"title")
+# vis = Visualization()
+# vis.wordcloud(df,"title")

@@ -33,6 +33,7 @@ class MachineLearning:
 
         return classifier_results
 
+    # TODO Isso aqui deveria receber um DF contendo as coisas exatas e ele ja processar-
     def linear_regression(self, x, y, predict, **kwargs):
         """ 
         This function will create a linear regression.
@@ -59,6 +60,7 @@ class MachineLearning:
         y - Label data
         predict - Data to predict
         """
+        x = x.to_numpy().reshape(-1, 1)
         k = len(y.unique())-1
         classifier = KNeighborsClassifier(n_neighbors=k, **kwargs).fit(x, y)
         classifier_results = classifier.predict(predict)
@@ -66,10 +68,10 @@ class MachineLearning:
         return classifier_results
 
     def cluster_kmeans(self, x, **kwargs):
-        cluster = KMeans(**kwargs).fit(x)
-        results = cluster.labels_
+        x = x.to_numpy().reshape(-1, 1)
+        cluster = KMeans(**kwargs).fit_predict(x)
 
-        return results
+        return cluster
 
     def cluster_dbscan(self, x, **kwargs):
         cluster = DBSCAN(**kwargs).fit(x)

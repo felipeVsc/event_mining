@@ -4,3 +4,4 @@ scikit-learn
 wordcloud
 sentence-transformers
 psycopg2
+duckdb

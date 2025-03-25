@@ -11,7 +11,7 @@ class Helpers:
     """
 
     def __init__(self):
-        self.model_path = "./all-MiniLM-L6-v2"
+        self.model_path = "../all-MiniLM-L6-v2"
 
     def setModelPath(self, model):
         """
