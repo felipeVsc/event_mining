@@ -97,7 +97,7 @@ class Visualization:
 
         return [True]*len(x)
 
-    def scatter(self, x, y, **kwargs):
+    def scatter(self, x, y, c, **kwargs):
         """ 
         Plot a scatter X vs Y and saves the result into a png.
 
@@ -105,8 +105,11 @@ class Visualization:
         y: Values on the Y-axis.
         """
         try:
+            # print(x)
+            # print(y)
+
             fig, ax = plt.subplots()
-            ax.scatter(x.to_pylist(), y.to_pylist(), **kwargs)
+            ax.scatter(x.to_pylist(), y.to_pylist(), c=c.to_pylist(), **kwargs)
             fig.savefig(self.path)
 
         except Exception as e:

@@ -38,7 +38,7 @@ aroundNY AS (
     SELECT city, latitude, longitude, numberNegativeNews, numberPositiveNews, month
     FROM ny, event e, location l, date d 
     WHERE e.locationID = l.locationID AND e.dateID = d.dateID AND
-          RANGE(LOCATION, 150, (latNY, longNY), (latitude, longitude)) 
+        RANGE(LOCATION, 150, (latNY, longNY), (latitude, longitude)) 
 ) 
 
 SELECT latitude, longitude, numberNegativeNews 

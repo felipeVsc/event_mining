@@ -3,6 +3,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cluster import KMeans, DBSCAN
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -67,10 +68,13 @@ class MachineLearning:
 
         return classifier_results
 
-    def cluster_kmeans(self, x, **kwargs):
-        x = x.to_numpy().reshape(-1, 1)
-        cluster = KMeans(**kwargs).fit_predict(x)
+    def cluster_kmeans(self, *args):
+        k = args[0].to_pylist()[0]
+        argsToColumns = [column.to_pylist() for column in args[1:]]
 
+        df = pd.DataFrame(np.array(argsToColumns).T, columns=[f"l{i+1}" for i in range(len(argsToColumns))])
+
+        cluster = KMeans(k).fit_predict(df)
         return cluster
 
     def cluster_dbscan(self, x, **kwargs):

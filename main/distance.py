@@ -11,26 +11,46 @@ class DistanceFunctions:
         self.RADIUS = 6371
 
     def euclidean(self, vec1, vec2):
+        """
+        Euclidean Distance for Spatial Data
+        """
         return distance.euclidean(vec1, vec2)
 
     def manhattan(self, vec1, vec2):
+        """
+        Manhattan distance for spatial data
+        """
         return distance.cityblock(vec1, vec2)
 
     def haversine(self, vec1, vec2):
+        """
+        Haversine distance for spatial data. (Response is kilometers)
+        """
         lat1, lon1 = vec1
-        lat2, lon2 = vec2
+        lat2, lon2 = vec2.as_py()
 
+        
         lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
         dlat = lat2 - lat1
         dlon = lon2 - lon1
         a = math.sin(dlat / 2)**2 + math.cos(lat1) * \
             math.cos(lat2) * math.sin(dlon / 2)**2
+        
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
         return self.RADIUS * c
 
     def cosine(self, vec1, vec2):
         return distance.cosine(vec1, vec2)
+
+    def cosineText(self, vec1, vec2):
+        from helpers import Helpers
+        hp = Helpers()
+
+        vec1Emb = hp.generate_text_embedding(vec1).reshape(-1)
+        vec2Emb = hp.generate_text_embedding(vec2).reshape(-1)
+    
+        return self.cosine(vec1Emb, vec2Emb)
 
     def levenshtein(self, str1, str2):
         len1, len2 = len(str1), len(str2)
@@ -50,7 +70,6 @@ class DistanceFunctions:
 
         return dp[len1][len2]
 
-    
     def date(self, radius, center, attrib, unit):
         # Radius = amount
         # Reference Date = Center
@@ -83,6 +102,7 @@ class DistanceFunctions:
         tgt_date = datetime.strptime(attrib, "%Y-%m-%d")
 
         max_date = ref_date + units[unit](radius)
+        min_date = ref_date - units[unit](radius)
 
         return min_date <= tgt_date <= max_date
 
