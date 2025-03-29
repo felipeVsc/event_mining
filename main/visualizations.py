@@ -79,22 +79,22 @@ class Visualization:
         label: Label for the legend of the bars.
         """
         try:
+            # TODO como vem uma lista agora, então tem que mudar pro [0]
             fig, ax = plt.subplots()
-            print("y:")
-            print(y)
-
-            print()
-
-            print("x:")
-            print(x)
-         
-            ax.barh(y.to_pylist(), x.to_pylist(), **kwargs)
+            print(y.to_pylist()[0])
+            print(x.to_pylist()[0])
+            print(type(y.to_pylist()[0]))
+            print(type(x.to_pylist()[0]))
+            ax.barh(y.to_pylist()[0], x.to_pylist()[0], **kwargs)
+            print("é depois do barh")
             fig.savefig(self.path)
 
         except Exception as e:
+            print("é aqui")
             print(e)
             return e
 
+        print(" eh antes do return ")
         return [True]*len(x)
 
     def scatter(self, x, y, c, **kwargs):
