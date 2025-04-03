@@ -6,6 +6,10 @@ from visualizations import Visualization
 from similarity_func import Similarity
 from typing import Union
 from duckdb import typing as tp
+import sqlparse
+from sqlparse.sql import Identifier, Function, IdentifierList
+from sqlparse.tokens import Keyword, DML
+
 class EngineDuck:
     
     def __init__(self,host,port,name, user, password):
@@ -15,52 +19,75 @@ class EngineDuck:
         self.vis = Visualization()
         self.ml = MachineLearning()
         self.sim = Similarity()
+        self.functions = ['CLUSTER_DBSCAN', 'CLASSIFY_KNN', 'CLASSIFY_DECISION_TREE', 'CLASSIFY_LINEAR_REG','CLUSTER_KMEANS', 'LINEPLOT', "BOXPLOT", 'HBAR', 'SCATTER', 'PIE', 'VBAR', 'WORDCLOUD']
     
+    def wrappingFunctionsWithArrayAgg(self, token):
+        token.tokens.insert(0, sqlparse.sql.Token(Keyword, 'array_agg('))
+        token.tokens.append(sqlparse.sql.Token(Keyword, ')'))
+
+    def processingTokensForArrayAgg(self, tokens):
+        for token in tokens:
+            if isinstance(token, Function) and token.get_real_name().upper() in self.functions:
+                for arg in token.get_parameters():
+                    if isinstance(arg, sqlparse.sql.Identifier) or isinstance(arg,Function):
+                        self.wrappingFunctionsWithArrayAgg(arg)
+            elif token.is_group:
+                self.processingTokensForArrayAgg(token.tokens)
+
+    def transformQueryToArrayAgg(self, query):
+        parsed = sqlparse.parse(query)
+        for stmt in parsed:
+            self.processingTokensForArrayAgg(stmt.tokens)
+        return ''.join(str(stmt) for stmt in parsed)
+
     def runQuery(self, query):
-        result = self.con.execute(query).fetch_df()
+        transformedQuery = self.transformQueryToArrayAgg(query) # This is a workaround for Duckdb's vectorization. Its only needed in ML and Vis functions.
+        print(transformedQuery)
+        print()
+        result = self.con.execute(transformedQuery).fetch_df()
         return result
     
     def getPublicMethodsClass(self,obj):
         return [method for method in dir(obj) if callable(getattr(obj, method)) and not method.startswith("_")]
-
-    def _cluster_kmeans_udf(self, *args):
-        return self.ml.cluster_kmeans(*args)
 
     def registerAllMlFunctions(self):
         # This function is responsible for registering all ML Functions
 
         # Need to define the essential parameters we will let the users choose.. cant be dynamic like it was
         cluster_kmeans_bound = partial(self.ml.cluster_kmeans) # Replicate this partial function for everyone
-        self.con.create_function("CLUSTER_KMEANS", cluster_kmeans_bound, parameters=None, return_type=int, type="arrow") # Maybe this wont work
+        self.con.create_function("CLUSTER_KMEANS", cluster_kmeans_bound, parameters=None, return_type=list[float], type="arrow") # Maybe this wont work
         
-        self.con.create_function("CLUSTER_DBSCAN", lambda x: self.ml.cluster_dbscan(x), [float], int, type="arrow") # Maybe this wont work
+        cluster_dbscan_bound = partial(self.ml.cluster_dbscan) # Replicate this partial function for everyone
+        self.con.create_function("CLUSTER_DBSCAN", cluster_dbscan_bound, parameters=None, return_type=int, type="arrow") # Maybe this wont work
         
-        self.con.create_function("CLASSIFY_KNN", lambda x, y, predict: self.ml.knn_classifier(x,y,predict), [float,float,float], int, type="arrow")
+        knn_classifier_bound = partial(self.ml.knn_classifier) # Replicate this partial function for everyone
+        self.con.create_function("CLASSIFY_KNN", knn_classifier_bound, parameters=None, return_type=int, type="arrow")
 
-        self.con.create_function("CLASSIFY_DECISION_TREE", lambda x, y, predict, visualize: self.ml.decision_tree(x,y,predict, visualize), [float,float,float, bool], int, type="arrow")
+        decision_tree_bound = partial(self.ml.decision_tree) # Replicate this partial function for everyone
+        self.con.create_function("CLASSIFY_DECISION_TREE", decision_tree_bound, parameters=None, return_type=int, type="arrow")
 
-        self.con.create_function("CLASSIFY_LINEAR_REG", lambda x, y, predict: self.ml.linear_regression(x,y,predict), [float,float,float], int, type="arrow")
+        linear_regression_bound = partial(self.ml.linear_regression) # Replicate this partial function for everyone
+        self.con.create_function("CLASSIFY_LINEAR_REG", linear_regression_bound, parameters=None, return_type=int, type="arrow")
 
         return True
 
     def registerAllVisualizeFunctions(self):
         # TODO test everyone here again with the parameters=None.
+        # And then, change for receiving a list   ax.barh(y.to_pylist()[0], x.to_pylist()[0], **kwargs) <- like this
 
-        self.con.create_function("LINEPLOT", lambda x, y: self.vis.lineplot(x, y), [float,float], bool, type="arrow")
+        self.con.create_function("LINEPLOT", lambda x, y: self.vis.lineplot(x, y), parameters=None,return_type=bool, type="arrow")
         
-        self.con.create_function("BOXPLOT", lambda x, labels: self.vis.boxplot(x, labels), [float,str], float, type="arrow")
+        self.con.create_function("BOXPLOT", lambda x, labels: self.vis.boxplot(x, labels), parameters=None, return_type=bool, type="arrow")
 
-        # eu posso adicionar na chamada do hbar algo como hbar(*args) e provavelmente vai funcionar para pegar a lista de args. a partir disso eu posso checar os tipos e etc 
-        
-        self.con.create_function("HBAR", lambda x, y: self.vis.hbar(x, y), parameters=None, return_type=float, type="arrow")
+        self.con.create_function("HBAR", lambda x, y: self.vis.hbar(x, y), parameters=None, return_type=bool, type="arrow")
 
-        self.con.create_function("PIE", lambda x, labels: self.vis.pie(x, labels), parameters=None, return_type=str, type="arrow")
+        self.con.create_function("PIE", lambda x, labels: self.vis.pie(x, labels), parameters=None, return_type=bool, type="arrow")
 
-        self.con.create_function("SCATTER", lambda x, y, c: self.vis.scatter(x, y, c), [list[float],list[float], list[int]], float, type="arrow") #Blob Maybe??
+        self.con.create_function("SCATTER", lambda x, y, c: self.vis.scatter(x, y, c), parameters=None, return_type=bool, type="arrow") #Blob Maybe??
 
-        self.con.create_function("VBAR", lambda x, y: self.vis.vbar(x, y), [float,float], float, type="arrow")
+        self.con.create_function("VBAR", lambda x, y: self.vis.vbar(x, y), parameters=None, return_type=bool, type="arrow")
 
-        self.con.create_function("WORDCLOUD", lambda words: self.vis.wordcloud(words), [str], str, type="arrow")
+        self.con.create_function("WORDCLOUD", lambda words: self.vis.wordcloud(words), parameters=None, return_type=bool, type="arrow")
         
         # 'LIST(LIST(FLOAT))'
         # vai vim do banco. como q eu passaria? Porque tem que ser 2d, entao como seria essa representação 2d vinda do banco?

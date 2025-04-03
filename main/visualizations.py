@@ -5,6 +5,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import numpy as np
 
+
 class Visualization:
     """
     This file represents a matplotlib wrapper, so you can use this class to create visualization such as 
@@ -30,13 +31,8 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
-            # for new_line in y:
-            import pyarrow
-            # if type(y) == ""
-            
-            ax.plot(x.to_pylist(), y.to_pylist(), **kwargs)
+            ax.plot(x.to_pylist()[0], y.to_pylist()[0], **kwargs)
 
-            # this cant be dynamic. it will be static
             if 'label' in kwargs:
                 fig.legend(kwargs['label'])
 
@@ -58,9 +54,7 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
-            print(x[0])
-            ax.bar(x.to_pylist(), y.to_pylist(), **kwargs)
-            print("hi2")
+            ax.bar(x.to_pylist()[0], y.to_pylist()[0], **kwargs)
             fig.savefig(self.path)
 
         except Exception as e:
@@ -81,20 +75,12 @@ class Visualization:
         try:
             # TODO como vem uma lista agora, então tem que mudar pro [0]
             fig, ax = plt.subplots()
-            print(y.to_pylist()[0])
-            print(x.to_pylist()[0])
-            print(type(y.to_pylist()[0]))
-            print(type(x.to_pylist()[0]))
             ax.barh(y.to_pylist()[0], x.to_pylist()[0], **kwargs)
-            print("é depois do barh")
             fig.savefig(self.path)
 
         except Exception as e:
-            print("é aqui")
-            print(e)
             return e
 
-        print(" eh antes do return ")
         return [True]*len(x)
 
     def scatter(self, x, y, c, **kwargs):
@@ -105,11 +91,15 @@ class Visualization:
         y: Values on the Y-axis.
         """
         try:
-            # print(x)
-            # print(y)
-
+            print(type(c[0]))
+            print(c.to_pylist()[0])
+            print()
+            print(c[0].as_py())
+            print(len(c[0].as_py()))
+            print(type(c[0].as_py()))
             fig, ax = plt.subplots()
-            ax.scatter(x.to_pylist(), y.to_pylist(), c=c.to_pylist(), **kwargs)
+            ax.scatter(x.to_pylist()[0], y.to_pylist()
+                       [0], c=c[0].as_py(), **kwargs)
             fig.savefig(self.path)
 
         except Exception as e:
@@ -127,13 +117,13 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
-            ax.pie(x.to_pylist(), labels=labels, **kwargs)
+            ax.pie(x.to_pylist()[0], labels=labels[0], **kwargs)
             fig.savefig(self.path)
 
         except Exception as e:
             raise e
 
-        return labels
+        return [True]*len(labels)
 
     def boxplot(self, x, labels, **kwargs):
         """ 
@@ -145,13 +135,14 @@ class Visualization:
         """
         try:
             fig, ax = plt.subplots()
-            ax.boxplot(x.to_pylist(), labels=labels.to_pylist(), **kwargs)
+            ax.boxplot(x.to_pylist()[0],
+                       labels=labels.to_pylist()[0], **kwargs)
             fig.savefig(self.path)
 
         except Exception as e:
             raise e
 
-        return labels
+        return [True]*len(labels)
 
     def heatmap(self, data1, data2, **kwargs):
         """ 
@@ -163,7 +154,8 @@ class Visualization:
         try:
             fig, ax = plt.subplots()
             # TODO fix this
-            features = np.column_stack((data1.to_pylist(), data2.to_pylist()))
+            features = np.column_stack(
+                (data1.to_pylist()[0], data2.to_pylist()[0]))
             ax.imshow(features, **kwargs)
             fig.savefig(self.path)
 
@@ -190,6 +182,7 @@ class Visualization:
             return word.lower()
 
         data = pc.drop_null(data)
+        data = data[0].as_py()
 
         try:
             words = pc.list_flatten(pc.utf8_split_whitespace(data))
@@ -198,9 +191,8 @@ class Visualization:
 
             words_to_singlestring = " ".join(cleaned_words)
 
-            wordcloud = WordCloud(background_color="white").generate(words_to_singlestring)
-            print(wordcloud.words_)
-
+            wordcloud = WordCloud(background_color="white").generate(
+                words_to_singlestring)
             fig, ax = plt.subplots()
             ax.imshow(wordcloud)
             fig.savefig(self.path)
@@ -208,10 +200,4 @@ class Visualization:
         except Exception as e:
             raise e
 
-        return data
-
-# import pandas as pd
-# df = pd.read_csv("./data/content.csv",index_col="contentID")
-
-# vis = Visualization()
-# vis.wordcloud(df,"title")
+        return [True]
