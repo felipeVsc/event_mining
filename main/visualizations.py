@@ -91,13 +91,24 @@ class Visualization:
         y: Values on the Y-axis.
         """
         try:
-            print(type(c[0]))
-            print(c.to_pylist()[0])
-            print()
-            print(c[0].as_py())
-            print(len(c[0].as_py()))
-            print(type(c[0].as_py()))
+
+            # print(x.chunks)
+            # for chnk in x.chunks:
+            #     print(chnk)
+
+
+            # print(len(x.chunks))
+            # print("size")
+            # print(len(x.to_pylist()))
+
+            # print(type(c[0]))
+            # print(c.to_pylist()[0])
+            # print()
+            # print(c[0].as_py())
+            # print(len(c[0].as_py()))
+            # print(type(c[0].as_py()))
             fig, ax = plt.subplots()
+            print("its here")
             ax.scatter(x.to_pylist()[0], y.to_pylist()
                        [0], c=c[0].as_py(), **kwargs)
             fig.savefig(self.path)

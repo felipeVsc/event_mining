@@ -33,8 +33,11 @@ class Similarity:
         func = self.getFunctionName(func)
         center = self.getCenterPoint(center)
 
+        # print(type(attrib))
+        # print(attrib)
+        # print("b4 for")
         for value in attrib:
-
+            # print(value)
             if func == 'cosine' and not type(value) == list:
                 func = 'cosineText'
 
@@ -43,8 +46,9 @@ class Similarity:
                 unit = args[1]
                 distance_value = self.dist_funcs[func](center, value, radius, unit)
             else:
-                distance_value = self.dist_funcs[func](center, value)
 
+                distance_value = self.dist_funcs[func](center, value)
+                
             result.append(distance_value)
 
         return result
@@ -54,7 +58,7 @@ class Similarity:
         distances = self.generateDistanceValues(func, center, attrib)
         positions = [pos for pos, value in sorted(
             enumerate(distances, start=1), key=lambda x: x[1])]
-
+        # print(positions)
         return positions
 
     def rangeSim(self, func, radius, center, attrib):

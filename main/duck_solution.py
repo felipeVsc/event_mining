@@ -44,7 +44,14 @@ class EngineDuck:
         transformedQuery = self.transformQueryToArrayAgg(query) # This is a workaround for Duckdb's vectorization. Its only needed in ML and Vis functions.
         print(transformedQuery)
         print()
-        result = self.con.execute(transformedQuery).fetch_df()
+        result = self.con.sql(query).arrow().to_pandas()
+        print(result)
+        # print("Shape:")
+        # print(result.read_next_batch().to_pandas().shape)
+
+        # print("For")
+        # for r in result:
+        #     print(r.read_next_batch().to_pandas().shape)
         return result
     
     def getPublicMethodsClass(self,obj):
@@ -55,7 +62,7 @@ class EngineDuck:
 
         # Need to define the essential parameters we will let the users choose.. cant be dynamic like it was
         cluster_kmeans_bound = partial(self.ml.cluster_kmeans) # Replicate this partial function for everyone
-        self.con.create_function("CLUSTER_KMEANS", cluster_kmeans_bound, parameters=None, return_type=list[float], type="arrow") # Maybe this wont work
+        self.con.create_function("CLUSTER_KMEANS", cluster_kmeans_bound, parameters=None, return_type=int, type="arrow") # Maybe this wont work
         
         cluster_dbscan_bound = partial(self.ml.cluster_dbscan) # Replicate this partial function for everyone
         self.con.create_function("CLUSTER_DBSCAN", cluster_dbscan_bound, parameters=None, return_type=int, type="arrow") # Maybe this wont work
@@ -64,7 +71,7 @@ class EngineDuck:
         self.con.create_function("CLASSIFY_KNN", knn_classifier_bound, parameters=None, return_type=int, type="arrow")
 
         decision_tree_bound = partial(self.ml.decision_tree) # Replicate this partial function for everyone
-        self.con.create_function("CLASSIFY_DECISION_TREE", decision_tree_bound, parameters=None, return_type=int, type="arrow")
+        self.con.create_function("CLASSIFY_DECISION_TREE", decision_tree_bound, parameters=None, return_type=list[int], type="arrow")
 
         linear_regression_bound = partial(self.ml.linear_regression) # Replicate this partial function for everyone
         self.con.create_function("CLASSIFY_LINEAR_REG", linear_regression_bound, parameters=None, return_type=int, type="arrow")

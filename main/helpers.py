@@ -81,7 +81,7 @@ class Helpers:
 
         return iso_format
 
-    def generate_text_embedding(self, text: str):
+    def generate_text_embedding(self, text):
         """ 
         This will use a all-MiniLM-L6-v2 model to generate text embbedings for cosine similarity.
 
@@ -95,5 +95,11 @@ class Helpers:
 
         np.array
         """
-        model = SentenceTransformer(self.model_path)
+        model = SentenceTransformer(self.model_path, device='cpu')
+
+        if type(text) != str:
+            text = text.as_py()
+        print("HELLO")
+        print(text)
+        print(type(text))
         return model.encode(text)

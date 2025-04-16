@@ -48,8 +48,9 @@ class DistanceFunctions:
         hp = Helpers()
 
         vec1Emb = hp.generate_text_embedding(vec1).reshape(-1)
+        print("vec1")
         vec2Emb = hp.generate_text_embedding(vec2).reshape(-1)
-    
+        print("cant vectorize")
         return self.cosine(vec1Emb, vec2Emb)
 
     def levenshtein(self, str1, str2):
